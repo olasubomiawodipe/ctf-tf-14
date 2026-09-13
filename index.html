@@ -1,0 +1,773 @@
+<title>Hydro Haven Briefing Deck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --bg:#0B0B0D;
+    --ink:#F2EFE9;
+    --ink-2:#A6A29A;
+    --dim:#7D7A73;
+    --rule:#242428;
+    --rule-2:#3A3A40;
+
+    --signal:#E04E32;
+    --pen:#7FA8D4;
+    --ok:#83B08C;
+    --warn:#C9A34E;
+
+    --a1:#7FA8D4;
+    --a2:#C9A34E;
+    --b:#83B08C;
+    --c:#B294CC;
+
+    --maxw:1140px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);overflow:hidden;
+    font-family:"Source Sans 3",system-ui,-apple-system,sans-serif;
+    -webkit-font-smoothing:antialiased;}
+  h1,h2,h3,h4{font-family:"Archivo",system-ui,sans-serif;text-wrap:balance;margin:0}
+  .mono,code{font-family:"IBM Plex Mono",ui-monospace,monospace}
+  .num{font-variant-numeric:tabular-nums}
+
+  .deck{position:relative;z-index:1;height:100vh;height:100svh;width:100%;overflow:hidden}
+
+  .slide{position:absolute;inset:0;display:flex;flex-direction:column;overflow-y:auto;
+    padding:70px clamp(20px,6vw,92px) 88px;
+    opacity:0;pointer-events:none;
+    transition:opacity .3s ease;}
+  .slide.active{opacity:1;pointer-events:auto}
+  .slide.appendix{display:none}
+  @media (prefers-reduced-motion: reduce){.slide{transition:none}}
+
+  /* ---------- fixed chrome ---------- */
+  .chrome-top{position:fixed;top:0;left:0;right:0;z-index:5;display:flex;
+    justify-content:space-between;align-items:center;
+    padding:18px clamp(20px,6vw,40px);border-bottom:1px solid var(--rule);
+    font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--dim);pointer-events:none;background:var(--bg)}
+  .chrome-top .brand{color:var(--ink-2)}
+  .counter{font-variant-numeric:tabular-nums;color:var(--ink-2)}
+
+  .progress{position:fixed;top:0;left:0;height:2px;background:var(--signal);z-index:6;
+    transition:width .3s ease}
+  @media (prefers-reduced-motion: reduce){.progress{transition:none}}
+
+  .navzone{position:fixed;top:0;bottom:0;width:16%;z-index:4;cursor:pointer;background:transparent}
+  .navzone.left{left:0}
+  .navzone.right{right:0}
+
+  .navbtn{position:fixed;bottom:20px;z-index:7;width:38px;height:38px;
+    border:1px solid var(--rule-2);background:var(--bg);border-radius:0;
+    color:var(--ink-2);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+  .navbtn:hover{border-color:var(--ink);color:var(--ink)}
+  .navbtn:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+  .navbtn.prev{right:78px}
+  .navbtn.next{right:clamp(20px,6vw,40px)}
+  .navbtn.full{left:clamp(20px,6vw,40px);bottom:20px;width:auto;height:38px;padding:0 14px;gap:8px;
+    font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.14em;
+    text-transform:uppercase;display:none}
+  @media (min-width:900px){.navbtn.full{display:flex;left:auto;right:126px}}
+
+  .dots{position:fixed;bottom:30px;left:clamp(20px,6vw,40px);z-index:7;display:flex;gap:4px}
+  @media (max-width:700px){.dots{display:none}}
+  .dot{width:14px;height:2px;background:var(--rule-2)}
+  .dot.on{background:var(--signal)}
+
+  /* ---------- shared type ---------- */
+  .spine{flex:1;display:flex;flex-direction:column;justify-content:center;
+    max-width:var(--maxw);margin:0 auto;width:100%}
+  .spine.center{align-items:center;text-align:center}
+  .spine.top{justify-content:flex-start;padding-top:26px}
+
+  .label{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600;
+    letter-spacing:.2em;text-transform:uppercase;color:var(--dim);margin-bottom:20px}
+  .label.pen{color:var(--pen)}
+  .label.signal{color:var(--signal)}
+  .label.ok{color:var(--ok)}
+
+  .headline{font-size:clamp(28px,4.4vw,54px);font-weight:800;line-height:1.05;
+    letter-spacing:-.02em;color:var(--ink)}
+  .headline em{font-style:normal;color:var(--pen)}
+  .sub{font-size:clamp(15px,1.5vw,20px);color:var(--ink-2);line-height:1.55;max-width:58ch;margin:16px 0 0}
+  .note{font-size:clamp(13px,1.1vw,16px);color:var(--dim);line-height:1.5;max-width:54ch;margin:18px 0 0}
+
+  /* ---------- title ---------- */
+  .title-rule{height:2px;background:var(--signal);width:64px;margin-bottom:30px}
+  .slide[data-title="Title"] .title-rule{display:none}
+  .title-main{font-size:clamp(44px,8vw,104px);font-weight:900;line-height:.94;letter-spacing:-.035em}
+  .team{margin-top:44px;border-top:1px solid var(--rule);padding-top:18px;
+    display:grid;grid-template-columns:auto 1fr;gap:8px 40px;align-items:start}
+  .team dt{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.2em;
+    text-transform:uppercase;color:var(--signal);padding-top:3px}
+  .team dd{margin:0;display:flex;flex-wrap:wrap;gap:6px 26px;
+    font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--ink-2)}
+
+  /* ---------- divider ---------- */
+  .divider-part{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.26em;
+    text-transform:uppercase;color:var(--signal);margin-bottom:24px}
+  .divider-title{font-size:clamp(34px,6.6vw,84px);font-weight:900;line-height:1;letter-spacing:-.035em}
+  .divider-title em{font-style:normal;color:var(--pen)}
+
+  /* ---------- beat (simple story) slides ---------- */
+  .beat-head{display:flex;align-items:center;gap:16px;
+    border-bottom:1px solid var(--rule);padding-bottom:14px;margin-bottom:36px}
+  .beat-n{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.2em;
+    text-transform:uppercase;color:var(--dim);font-variant-numeric:tabular-nums}
+  .beat-ico{margin-left:auto;flex:none}
+  .statement{font-size:clamp(30px,5.2vw,68px);font-weight:800;line-height:1.06;
+    letter-spacing:-.03em;max-width:17ch}
+  .statement .hi{color:var(--pen)}
+  .statement .crit{color:var(--signal)}
+
+  /* ---------- doorway slides ---------- */
+  .dw-spine{border-left:2px solid var(--tone);padding-left:clamp(18px,2.4vw,30px)}
+  .dw-tag{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .dw-chip{width:9px;height:9px;background:var(--tone);flex:none}
+  .dw-tag span{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600;
+    letter-spacing:.16em;text-transform:uppercase;color:var(--tone)}
+  .dw-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:clamp(28px,5vw,64px);
+    align-items:start;margin-top:26px;width:100%}
+  @media (max-width:860px){.dw-grid{grid-template-columns:1fr;gap:30px}}
+  .dw-lede{color:var(--ink-2);font-size:clamp(15px,1.4vw,17px);line-height:1.55;max-width:50ch;margin:0}
+  .dw-list{list-style:none;margin:22px 0 0;padding:0;border-top:1px solid var(--rule)}
+  .dw-list li{font-size:14.5px;color:var(--ink-2);line-height:1.45;
+    padding:11px 0;border-bottom:1px solid var(--rule);display:flex;gap:12px}
+  .dw-list li::before{content:"";width:4px;height:4px;background:var(--tone);
+    margin-top:8px;flex:none}
+  .dw-list strong{color:var(--ink);font-weight:600}
+
+  .statblock{border-top:2px solid var(--tone);padding-top:18px}
+  .statblock .lbl{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--dim);line-height:1.4;margin-bottom:16px;max-width:26ch}
+  .statblock .big{font-family:"Archivo",sans-serif;font-weight:800;
+    font-size:clamp(42px,6.6vw,78px);line-height:.9;letter-spacing:-.04em;
+    color:var(--ink);font-variant-numeric:tabular-nums}
+  .w5{margin-top:26px;border-top:1px solid var(--rule)}
+  .w5 .row{display:grid;grid-template-columns:52px 1fr;gap:14px;padding:10px 0;
+    border-bottom:1px solid var(--rule)}
+  .w5 dt{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--dim);padding-top:2px}
+  .w5 dd{margin:0;font-size:13.5px;color:var(--ink-2);line-height:1.4}
+
+  /* ---------- column sets (legend / actors / ask) ---------- */
+  .cols{display:grid;width:100%;gap:0}
+  .cols.four{grid-template-columns:repeat(4,1fr)}
+  .cols.three{grid-template-columns:repeat(3,1fr)}
+  @media (max-width:860px){.cols.four{grid-template-columns:repeat(2,1fr)}.cols.three{grid-template-columns:1fr}}
+  .col{border-top:2px solid var(--tone);padding:16px clamp(14px,1.8vw,24px) 0;
+    border-left:1px solid var(--rule)}
+  .col:first-child{border-left:none;padding-left:0}
+  @media (max-width:860px){
+    .cols.four .col:nth-child(3){border-left:none;padding-left:0}
+    .cols.four .col{margin-top:22px}
+    .cols.three .col{border-left:none;padding-left:0;margin-top:22px}
+  }
+  .col .ct{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--tone);margin-bottom:10px}
+  .col h3{font-size:17px;font-weight:700;margin-bottom:8px;letter-spacing:-.01em}
+  .col h4{font-size:15px;font-weight:700;margin-bottom:6px}
+  .col p{margin:0;font-size:13.5px;color:var(--ink-2);line-height:1.5}
+  .col .sm{font-size:13px;color:var(--ink-2);margin-top:6px}
+  .conf{display:inline-block;margin-top:12px;font-family:"IBM Plex Mono",monospace;
+    font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);
+    border:1px solid var(--rule-2);padding:2px 7px}
+  .glyph{font-size:20px;display:block;margin-bottom:10px;filter:saturate(.75)}
+
+  /* ---------- timeline ---------- */
+  .tl{margin-top:46px;width:100%;--tl-columns:6}
+  .tl-track{height:1px;background:var(--rule-2);width:calc((100% / var(--tl-columns)) * (var(--tl-columns) - 1) + 5px);
+    margin-left:4px;position:relative}
+  .tl-row{display:grid;grid-template-columns:repeat(var(--tl-columns),1fr);gap:0;margin-top:-5px}
+  @media (max-width:860px){.tl-track{display:none}.tl-row{--tl-columns:3;row-gap:26px}}
+  .tl-pt{display:flex;flex-direction:column;align-items:flex-start;padding-right:12px}
+  .tl-node{width:9px;height:9px;background:var(--tone)}
+  .tl-stem{width:1px;height:16px;background:var(--rule-2);margin-left:4px}
+  .tl-d{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.1em;
+    color:var(--tone);font-variant-numeric:tabular-nums;margin-bottom:5px}
+  .tl-t{font-size:13px;color:var(--ink-2);line-height:1.35;max-width:16ch}
+
+  /* ---------- findings ---------- */
+  .f-rule{height:2px;width:48px;background:var(--signal);margin-bottom:22px}
+  .f-rule.ok{background:var(--ok)}
+
+  /* ---------- QR ---------- */
+  .qr-grid{display:grid;grid-template-columns:auto 1fr;gap:clamp(28px,5vw,60px);
+    align-items:start;margin-top:30px;width:100%}
+  @media (max-width:760px){.qr-grid{grid-template-columns:1fr;gap:26px}}
+  .qr-frame{background:#fff;padding:14px;width:190px;height:190px;flex:none;
+    display:flex;align-items:center;justify-content:center}
+  .qr-frame img{width:162px;height:162px;image-rendering:pixelated;display:block}
+  .qr-cap{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--dim);margin-top:12px}
+  .qr-list{list-style:none;margin:20px 0 0;padding:0;border-top:1px solid var(--rule)}
+  .qr-list li{font-size:14px;color:var(--ink-2);padding:9px 0;
+    border-bottom:1px solid var(--rule)}
+  .qr-url{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--dim);
+    margin-top:16px;word-break:break-all}
+
+  .credit{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--dim);
+    letter-spacing:.12em;margin-top:28px}
+
+  .decision-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:0;
+    margin-top:38px;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+  .decision-item{padding:14px 18px 14px 0;border-right:1px solid var(--rule)}
+  .decision-item:not(:first-child){padding-left:18px}
+  .decision-item:last-child{border-right:none}
+  .decision-item .k{display:block;font-family:"IBM Plex Mono",monospace;font-size:10px;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--signal);margin-bottom:6px}
+  .decision-item .v{display:block;font-size:14px;color:var(--ink-2);line-height:1.35}
+  .status-note{display:inline-block;margin-top:18px;border-left:2px solid var(--warn);
+    padding-left:10px;font-family:"IBM Plex Mono",monospace;font-size:10px;
+    letter-spacing:.08em;text-transform:uppercase;color:var(--warn)}
+  .timeline-spine{position:relative}
+  .timeline-spine .tl{position:absolute;top:50%;left:50%;width:min(100%,1040px);
+    margin:0;transform:translate(-50%,-50%)}
+  .ask-spine{position:relative}
+  .ask-spine .cols.three{position:absolute;top:50%;left:50%;width:min(100%,1040px);
+    margin:0;transform:translate(-50%,-50%)}
+
+  @media (max-width:700px){
+    .decision-strip{grid-template-columns:1fr}
+    .decision-item,.decision-item:not(:first-child){border-right:none;border-bottom:1px solid var(--rule);padding:12px 0}
+    .decision-item:last-child{border-bottom:none}
+  }
+  @media (max-width:860px){
+    .ask-spine .cols.three{position:static;width:100%;margin-top:40px;transform:none}
+  }
+
+  /* Static pages keep the interactive deck legible when printed or exported. */
+  @media print{
+    @page{size:16in 9in;margin:0}
+    html,body{height:auto;overflow:visible;background:var(--bg)}
+    .deck{height:auto;overflow:visible}
+    .slide{position:relative;inset:auto;width:100vw;height:100vh;min-height:100vh;
+      opacity:1!important;pointer-events:auto;page-break-after:always;break-after:page;
+      overflow:hidden;transition:none}
+    .slide.appendix{display:flex}
+    .slide:last-child{page-break-after:auto;break-after:auto}
+    .chrome-top,.progress,.navzone,.navbtn,.dots,.sr-only{display:none!important}
+  }
+
+  .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+
+  @media (max-width:560px){
+    .slide{padding:64px 20px 92px}
+    .navzone{display:none}
+  }
+</style>
+
+<div class="chrome-top">
+  <div class="brand">Hydro Haven &middot; Incident Briefing</div>
+  <div class="counter"><span id="curNum">01</span> / <span id="totNum">00</span></div>
+</div>
+<div class="progress" id="progressBar" style="width:0%"></div>
+<main class="deck" id="deck" role="region" aria-roledescription="slide deck" aria-label="Hydro Haven Incident Briefing">
+
+<!-- TITLE -->
+<section class="slide" data-title="Title">
+  <div class="spine">
+    <div class="title-rule"></div>
+    <div class="label" style="margin-bottom:26px">Tracer FIRE 14 &middot; Oversight Committee &middot; 14 Jan&ndash;14 Feb 2026</div>
+    <h1 class="title-main">Hydro Haven</h1>
+    <dl class="team">
+      <dt>Team Vortex</dt>
+      <dd>
+        <span>Olasubomi Awodipe</span>
+        <span>Adeyori Adekunle</span>
+        <span>Sudeep Joshi</span>
+        <span>John Adeyemo</span>
+      </dd>
+    </dl>
+  </div>
+</section>
+
+<!-- DIVIDER PART ONE -->
+<section class="slide" data-title="Part One">
+  <div class="spine center">
+    <div class="divider-part">Part One</div>
+    <h2 class="divider-title">What happened,<br><em>in plain English.</em></h2>
+    <p class="sub" style="margin-top:26px">This story follows the human experience first. The timeline at the end restores the incident&rsquo;s chronological order: four intrusion tracks converged on one exposed organization.</p>
+  </div>
+</section>
+
+<!-- BEATS -->
+<section class="slide" data-title="Beat 1">
+  <div class="spine">
+    <div class="beat-head">
+      <span class="beat-n">SIM swap</span>
+      <svg class="beat-ico" width="44" height="44" viewBox="0 0 56 56"><rect x="18" y="6" width="20" height="44" fill="none" stroke="#7FA8D4" stroke-width="2"/><line x1="18" y1="42" x2="38" y2="42" stroke="#7FA8D4" stroke-width="2"/><path d="M8 20l8 8-8 8M48 20l-8 8 8 8" stroke="#E04E32" stroke-width="2.2" fill="none"/></svg>
+    </div>
+    <h2 class="statement">Someone stole Helen Ruiz&rsquo;s <span class="hi">phone number.</span></h2>
+    <p class="note">Helen&rsquo;s mobile line was fraudulently taken over, a &ldquo;SIM swap,&rdquo; so her calls and texts went to the attacker instead of her.</p>
+  </div>
+</section>
+
+<section class="slide" data-title="Beat 2">
+  <div class="spine">
+    <div class="beat-head">
+      <span class="beat-n">Identity takeover</span>
+      <svg class="beat-ico" width="44" height="44" viewBox="0 0 56 56"><circle cx="28" cy="19" r="9" fill="none" stroke="#7FA8D4" stroke-width="2"/><path d="M10 50c2-12 10-18 18-18s16 6 18 18" fill="none" stroke="#7FA8D4" stroke-width="2"/><path d="M36 10l10 10M46 10L36 20" stroke="#E04E32" stroke-width="2.2"/></svg>
+    </div>
+    <h2 class="statement">They used Helen&rsquo;s number to <span class="hi">become her</span>, online.</h2>
+    <p class="note">With Helen&rsquo;s number, they passed her company&rsquo;s identity check, reset her password, and logged into her account. The system had no way to know it wasn&rsquo;t her.</p>
+  </div>
+</section>
+
+<section class="slide" data-title="Beat 3">
+  <div class="spine">
+    <div class="beat-head">
+      <span class="beat-n">Trusted coworker</span>
+      <svg class="beat-ico" width="44" height="44" viewBox="0 0 56 56"><rect x="6" y="10" width="30" height="20" fill="none" stroke="#7FA8D4" stroke-width="2"/><path d="M14 30l-4 8 10-6" fill="none" stroke="#7FA8D4" stroke-width="2"/><rect x="34" y="30" width="16" height="14" fill="none" stroke="#E04E32" stroke-width="2"/><path d="M37 34l4 3 4-3" stroke="#E04E32" stroke-width="1.8" fill="none"/></svg>
+    </div>
+    <h2 class="statement">As Helen, they tricked a <span class="hi">coworker</span> into typing one command.</h2>
+    <p class="note">Posing as Helen on Microsoft Teams, they sent the cloud administrator a link and walked him through pasting a single line into his computer.</p>
+  </div>
+</section>
+
+<section class="slide" data-title="Beat 4">
+  <div class="spine">
+    <div class="beat-head">
+      <span class="beat-n">Cloud control</span>
+      <svg class="beat-ico" width="44" height="44" viewBox="0 0 56 56"><circle cx="20" cy="20" r="10" fill="none" stroke="#E04E32" stroke-width="2.2"/><rect x="17" y="17" width="6" height="6" fill="#E04E32"/><path d="M28 26l20 20" stroke="#E04E32" stroke-width="2.2"/><path d="M40 38l6-6M44 42l6-6" stroke="#E04E32" stroke-width="2.2"/></svg>
+    </div>
+    <h2 class="statement">That command gave them <span class="crit">tenant-wide control.</span></h2>
+    <p class="note">A hidden Global Administrator account appeared without an approval trail, giving the attacker control of Hydro Haven&rsquo;s cloud identity and email systems.</p>
+  </div>
+</section>
+
+<section class="slide" data-title="Beat 5">
+  <div class="spine">
+    <div class="beat-head">
+      <span class="beat-n">Public web server</span>
+      <svg class="beat-ico" width="44" height="44" viewBox="0 0 56 56"><rect x="6" y="12" width="44" height="30" fill="none" stroke="#7FA8D4" stroke-width="2"/><line x1="6" y1="20" x2="50" y2="20" stroke="#7FA8D4" stroke-width="2"/><path d="M20 30l16 6M36 30l-16 6" stroke="#E04E32" stroke-width="2.2"/></svg>
+    </div>
+    <h2 class="statement">Before her number was taken over, Hydro Haven&rsquo;s public website had already been <span class="hi">breached.</span></h2>
+    <p class="note">An operator found a flaw in the public web portal and entered as an administrator. Whether this activity was connected to the later identity takeover remains under investigation.</p>
+  </div>
+</section>
+
+<section class="slide" data-title="Beat 6">
+  <div class="spine">
+    <div class="beat-head">
+      <span class="beat-n">Supply-chain tamper</span>
+      <svg class="beat-ico" width="44" height="44" viewBox="0 0 56 56"><path d="M20 12L8 28l12 16M36 12l12 16-12 16" fill="none" stroke="#C9A34E" stroke-width="2.2"/><rect x="25" y="25" width="6" height="6" fill="#E04E32"/></svg>
+    </div>
+    <h2 class="statement">A second intrusion hid a <span class="hi">secret change</span> inside the company&rsquo;s own software.</h2>
+    <p class="note">Using that same website break-in, they impersonated an engineer and slipped a disguised change into code the company automatically ships, labeled &ldquo;minor bug fixes.&rdquo;</p>
+  </div>
+</section>
+
+<section class="slide" data-title="Beat 7">
+  <div class="spine">
+    <div class="beat-head">
+      <span class="beat-n">Plant-floor lure</span>
+      <svg class="beat-ico" width="44" height="44" viewBox="0 0 56 56"><rect x="14" y="10" width="6" height="30" transform="rotate(20 17 25)" fill="none" stroke="#83B08C" stroke-width="2"/><circle cx="38" cy="16" r="5" fill="none" stroke="#E04E32" stroke-width="2"/></svg>
+    </div>
+    <h2 class="statement">The last intrusion then began with a <span class="hi">fake invitation</span> to a plant worker who loved pickleball.</h2>
+    <p class="note">Weeks of quiet research on employees led to one convincing message: an &ldquo;exclusive tournament invitation&rdquo; addressed to exactly the right person.</p>
+  </div>
+</section>
+
+<section class="slide" data-title="Beat 8">
+  <div class="spine">
+    <div class="beat-head">
+      <span class="beat-n">Rootkits deployed</span>
+      <svg class="beat-ico" width="44" height="44" viewBox="0 0 56 56"><path d="M8 28c6-14 34-14 40 0" fill="none" stroke="#83B08C" stroke-width="2"/><circle cx="28" cy="28" r="6" fill="none" stroke="#83B08C" stroke-width="2"/><path d="M14 14L42 42" stroke="#E04E32" stroke-width="2.2"/></svg>
+    </div>
+    <h2 class="statement">That invitation planted programs that made computers <span class="hi">blind to their own defenses.</span></h2>
+    <p class="note">Once opened, it silently installed software that runs underneath Windows itself, deep enough to disable the antivirus watching over it.</p>
+  </div>
+</section>
+
+<!-- gut punch -->
+<section class="slide" data-title="The Death">
+  <div class="spine center">
+    <div class="divider-part" style="color:var(--signal)">Safety question</div>
+    <h2 class="statement" style="max-width:22ch;font-size:clamp(26px,4.4vw,50px);font-weight:700;text-align:center">Was Matt Wift&rsquo;s death connected to the <span class="crit" style="font-weight:800">plant intrusion?</span></h2>
+    <p class="note" style="max-width:50ch;text-align:center">We do not know. Matt was targeted by the pickleball lure and died after drinking water at the plant. Preserve evidence and coordinate with safety and law enforcement while the relationship is investigated.</p>
+  </div>
+</section>
+
+<section class="slide" data-title="Beat 10">
+  <div class="spine">
+    <div class="beat-head">
+      <span class="beat-n">Critical systems</span>
+      <svg class="beat-ico" width="44" height="44" viewBox="0 0 56 56"><rect x="10" y="10" width="36" height="36" fill="none" stroke="#E04E32" stroke-width="2" stroke-dasharray="4 5"/><rect x="24" y="24" width="8" height="8" fill="#E04E32"/></svg>
+    </div>
+    <h2 class="statement">Four intrusion tracks converged on <span class="hi">critical systems.</span></h2>
+    <p class="note">The corporate network, cloud identity, software pipeline, and plant-floor computers were all affected within thirty days. The timeline shows how those tracks overlapped.</p>
+  </div>
+</section>
+
+<!-- DIVIDER PART TWO -->
+<section class="slide appendix" data-title="Part Two">
+  <div class="spine center">
+    <div class="divider-part">Part Two</div>
+    <h2 class="divider-title">Four doorways.<br><em>One exposed organization.</em></h2>
+    <div class="cols four" style="margin-top:52px;max-width:820px;text-align:left">
+      <div class="col" style="--tone:var(--a1)"><div class="ct">Doorway A1</div><div class="sm">Web Server</div></div>
+      <div class="col" style="--tone:var(--a2)"><div class="ct">Doorway A2</div><div class="sm">Supply Chain</div></div>
+      <div class="col" style="--tone:var(--b)"><div class="ct">Doorway B</div><div class="sm">Plant Floor</div></div>
+      <div class="col" style="--tone:var(--c)"><div class="ct">Doorway C</div><div class="sm">Cloud Identity</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- DOORWAY A1 -->
+<section class="slide appendix" data-title="Doorway A1">
+  <div class="spine top" style="--tone:var(--a1)">
+    <div class="dw-spine">
+      <div class="dw-tag"><span class="dw-chip"></span><span>Doorway A1 &middot; 14&ndash;15 Jan 2026</span></div>
+      <h2 class="headline" style="font-size:clamp(26px,3.6vw,44px)">The Public Web Server</h2>
+      <div class="dw-grid">
+        <div>
+          <p class="dw-lede">An internet attacker found a flaw in Hydro Haven&rsquo;s public document portal and used it to run their own commands on the server, then stole a powerful password and logged in as Administrator.</p>
+          <ul class="dw-list">
+            <li>Exploited the portal to gain remote code execution, no credentials needed</li>
+            <li>Downloaded hidden programs using a trusted Windows tool, then deleted the evidence</li>
+            <li>Stole a credential from memory and reused it across the network</li>
+            <li>Weakened a remote-login safeguard, then signed in as Administrator</li>
+          </ul>
+        </div>
+        <div class="statblock">
+          <div class="lbl">Time from break-in to full admin control</div>
+          <div class="big num">~25 hrs</div>
+          <dl class="w5">
+            <div class="row"><dt>Who</dt><dd>External operator, South Korea</dd></div>
+            <div class="row"><dt>Where</dt><dd>Public SharePoint / IIS server</dd></div>
+            <div class="row"><dt>Why</dt><dd>Foothold and credential harvest</dd></div>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DOORWAY A2 -->
+<section class="slide appendix" data-title="Doorway A2">
+  <div class="spine top" style="--tone:var(--a2)">
+    <div class="dw-spine">
+      <div class="dw-tag"><span class="dw-chip"></span><span>Doorway A2 &middot; 15 Jan 2026, ten minutes later</span></div>
+      <h2 class="headline" style="font-size:clamp(26px,3.6vw,44px)">The Second Attacker, Same Door</h2>
+      <div class="dw-grid">
+        <div>
+          <p class="dw-lede">A <strong style="color:var(--ink)">separate</strong> operator reused the same break-in for a quieter goal: not the file server, but the code Hydro Haven actually ships.</p>
+          <ul class="dw-list">
+            <li>Backdated hidden webshell files by years so they&rsquo;d blend into old server history</li>
+            <li>Pivoted to the domain controller and reset engineer Bill Dewalt&rsquo;s password</li>
+            <li>Logged in as Bill, and inside his own code editor, committed a disguised change: &ldquo;Minor bug fixes&rdquo;</li>
+            <li>Bill caught and reverted it: the one moment vigilance stopped a backdoor from shipping</li>
+          </ul>
+        </div>
+        <div class="statblock">
+          <div class="lbl">Days the malicious commit sat live, undetected</div>
+          <div class="big num">8 days</div>
+          <dl class="w5">
+            <div class="row"><dt>Who</dt><dd>Distinct operator, Hong Kong</dd></div>
+            <div class="row"><dt>Where</dt><dd>Web server to DC to engineer&rsquo;s PC</dd></div>
+            <div class="row"><dt>Why</dt><dd>Backdoor the software before it ships</dd></div>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DOORWAY B -->
+<section class="slide appendix" data-title="Doorway B">
+  <div class="spine top" style="--tone:var(--b)">
+    <div class="dw-spine">
+      <div class="dw-tag"><span class="dw-chip"></span><span>Doorway B &middot; 4 Feb 2026</span></div>
+      <h2 class="headline" style="font-size:clamp(26px,3.6vw,44px)">The Pickleball Trap</h2>
+      <div class="dw-grid">
+        <div>
+          <p class="dw-lede">A fake tournament invitation led plant worker Matt Wift to download an app that carried a genuine Microsoft file, smuggling in malware alongside it.</p>
+          <ul class="dw-list">
+            <li>Seized full system control within one second of the app opening</li>
+            <li>Installed <strong>two kernel-level rootkits</strong> that hide beneath ordinary antivirus</li>
+            <li>Disabled the firewall and spread across four plant computers</li>
+            <li>Stole an email archive to an outside server</li>
+          </ul>
+        </div>
+        <div class="statblock">
+          <div class="lbl">Kernel rootkits installed, invisible to antivirus</div>
+          <div class="big num">2</div>
+          <dl class="w5">
+            <div class="row"><dt>Who</dt><dd>Alias &ldquo;Yocoteduende&rdquo;</dd></div>
+            <div class="row"><dt>Where</dt><dd>Facilities desktop, then 3 more plant PCs</dd></div>
+            <div class="row"><dt>Why</dt><dd>Persistent, invisible access near operations</dd></div>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DOORWAY C -->
+<section class="slide appendix" data-title="Doorway C">
+  <div class="spine top" style="--tone:var(--c)">
+    <div class="dw-spine">
+      <div class="dw-tag"><span class="dw-chip"></span><span>Doorway C &middot; 13&ndash;14 Feb 2026</span></div>
+      <h2 class="headline" style="font-size:clamp(26px,3.6vw,44px)">The Stolen Phone Number</h2>
+      <div class="dw-grid">
+        <div>
+          <p class="dw-lede">The SIM swap and Teams impersonation from Part One escalated into total control of the cloud tenant, plus mail rules that watched every employee&rsquo;s inbox.</p>
+          <ul class="dw-list">
+            <li>Created a hidden Global Administrator account outside any approval process</li>
+            <li>Built a trust link to an outside, attacker-controlled tenant</li>
+            <li>Abused the company&rsquo;s own security tool to reach four more employees&rsquo; computers</li>
+            <li>Copied every single company email to an external address</li>
+          </ul>
+        </div>
+        <div class="statblock">
+          <div class="lbl">Company email copied out to attackers</div>
+          <div class="big num">100%</div>
+          <dl class="w5">
+            <div class="row"><dt>Who</dt><dd>Hands-on operator, proxy infrastructure</dd></div>
+            <div class="row"><dt>Where</dt><dd>Microsoft 365 / Entra ID tenant</dd></div>
+            <div class="row"><dt>Why</dt><dd>Total, hard-to-remove control</dd></div>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TIMELINE -->
+<section class="slide" data-title="Timeline">
+  <div class="spine top timeline-spine">
+    <div class="label">One Month, One Story</div>
+    <h2 class="headline" style="font-size:clamp(24px,3.2vw,38px)">All four intrusion tracks, on one timeline.</h2>
+    <div class="tl">
+      <div class="tl-track"></div>
+      <div class="tl-row">
+        <div class="tl-pt" style="--tone:var(--a1)"><div class="tl-node"></div><div class="tl-stem"></div><div class="tl-d">14 Jan</div><div class="tl-t">Web server breached</div></div>
+        <div class="tl-pt" style="--tone:var(--a2)"><div class="tl-node"></div><div class="tl-stem"></div><div class="tl-d">15 Jan</div><div class="tl-t">Supply-chain commit planted</div></div>
+        <div class="tl-pt" style="--tone:var(--ok)"><div class="tl-node"></div><div class="tl-stem"></div><div class="tl-d">23 Jan</div><div class="tl-t">Commit caught and reverted</div></div>
+        <div class="tl-pt" style="--tone:var(--b)"><div class="tl-node"></div><div class="tl-stem"></div><div class="tl-d">4 Feb</div><div class="tl-t">Pickleball lure, rootkits</div></div>
+        <div class="tl-pt" style="--tone:var(--c)"><div class="tl-node"></div><div class="tl-stem"></div><div class="tl-d">13 Feb</div><div class="tl-t">SIM swap, cloud takeover</div></div>
+        <div class="tl-pt" style="--tone:var(--dim)"><div class="tl-node"></div><div class="tl-stem"></div><div class="tl-d">14 Feb</div><div class="tl-t">Helen reports her phone stopped working</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DIVIDER PART THREE -->
+<section class="slide appendix" data-title="Part Three">
+  <div class="spine center">
+    <div class="divider-part">Part Three</div>
+    <h2 class="divider-title">What it means<br><em>for the committee.</em></h2>
+  </div>
+</section>
+
+<!-- JUDGE APPENDIX: EVIDENCE -->
+<section class="slide appendix" data-title="Evidence Ledger">
+  <div class="spine top">
+    <div class="label">Judge Appendix &middot; Evidence Ledger</div>
+    <h2 class="headline" style="font-size:clamp(24px,3.2vw,38px)">What each conclusion is based on.</h2>
+    <div class="cols three" style="margin-top:40px">
+      <div class="col" style="--tone:var(--a1)"><div class="ct">Web compromise</div><p><strong>ToolPane.aspx activity</strong> and web-server telemetry establish command execution on the public portal.</p><p class="sm">Supporting artifacts: IIS logs, Malcolm alerts, process telemetry.</p></div>
+      <div class="col" style="--tone:var(--a2)"><div class="ct">Supply-chain tamper</div><p><strong>Git reflog</strong> records commit <strong>3bd5b08</strong> under Bill Dewalt&rsquo;s identity, followed by revert <strong>542e8e6</strong>.</p><p class="sm">Supporting artifacts: VS Code process lineage, Git history, EID 4724.</p></div>
+      <div class="col" style="--tone:var(--b)"><div class="ct">Plant compromise</div><p><strong>LoJack.sys</strong> and <strong>EsentFltDrv.sys</strong> establish kernel-level persistence beneath ordinary endpoint defenses.</p><p class="sm">Supporting artifacts: Velociraptor, memory, plant host telemetry.</p></div>
+      <div class="col" style="--tone:var(--c)"><div class="ct">Cloud takeover</div><p><strong>Entra audit records</strong> show Helen&rsquo;s reset, <strong>jstncase</strong> creation, privilege grants, trust changes, and mail rules.</p><p class="sm">Supporting artifacts: Entra, Defender, Teams, mailbox logs.</p></div>
+      <div class="col" style="--tone:var(--signal)"><div class="ct">Anti-forensics</div><p><strong>Sysmon EID 2</strong> records webshell timestamp manipulation; one webshell was also deleted or quarantined after use.</p><p class="sm">Supporting artifacts: Sysmon, IIS file history, Defender events.</p></div>
+      <div class="col" style="--tone:var(--warn)"><div class="ct">Safety boundary</div><p>The death and plant intrusion overlap in the incident window, but the causal relationship is <strong>not established</strong>.</p><p class="sm">Status: open safety investigation, not a confirmed cyber finding.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- JUDGE APPENDIX: INDICATORS -->
+<section class="slide appendix" data-title="Indicators and Scope">
+  <div class="spine top">
+    <div class="label">Judge Appendix &middot; Indicators and Scope</div>
+    <h2 class="headline" style="font-size:clamp(24px,3.2vw,38px)">The fingerprints behind the story.</h2>
+    <div class="cols three" style="margin-top:40px">
+      <div class="col" style="--tone:var(--a1)"><div class="ct">Network</div><p><strong>13.125.181.202</strong> primary web-server track<br><strong>16.162.238.67</strong> second web-server track<br><strong>35.86.58.69</strong> plant exfiltration</p></div>
+      <div class="col" style="--tone:var(--c)"><div class="ct">Cloud</div><p><strong>jstncase@vxnstate.net</strong> attacker-created Global Admin<br><strong>52.233.89.162</strong> RustDesk infrastructure<br><strong>aw1hymfkz3v5@gmail.com</strong> mail exfiltration</p></div>
+      <div class="col" style="--tone:var(--b)"><div class="ct">Host artifacts</div><p><strong>error.aspx</strong> and <strong>Home.aspx</strong> webshells<br><strong>LoJack.sys</strong> and <strong>EsentFltDrv.sys</strong> rootkits<br><strong>3bd5b08</strong> disguised Git commit</p></div>
+    </div>
+    <p class="note" style="margin-top:34px">Scope: corporate network, Microsoft 365 / Entra ID, plant-floor endpoints, and the software deployment path. The evidence supports compromise across all four environments.</p>
+  </div>
+</section>
+
+<!-- JUDGE APPENDIX: CONFIDENCE -->
+<section class="slide appendix" data-title="Confidence Boundaries">
+  <div class="spine top">
+    <div class="label">Judge Appendix &middot; Confidence Boundaries</div>
+    <h2 class="headline" style="font-size:clamp(24px,3.2vw,38px)">What is known, assessed, and still open.</h2>
+    <div class="cols three" style="margin-top:40px">
+      <div class="col" style="--tone:var(--ok)"><div class="ct">Confirmed</div><p>Web portal command execution; cloud identity takeover; plant rootkits; malicious Git commit; email collection; timestamp manipulation.</p></div>
+      <div class="col" style="--tone:var(--warn)"><div class="ct">Assessed</div><p>Distinct web-server operators; likely threat-group fit; trust abuse as the common operating pattern; possible coordination.</p></div>
+      <div class="col" style="--tone:var(--signal)"><div class="ct">Open</div><p>Whether the intrusion tracks were coordinated; whether the supply-chain commit shipped; whether the plant intrusion contributed to Matt Wift&rsquo;s death.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- FINDINGS -->
+<section class="slide appendix" data-title="Finding 1">
+  <div class="spine">
+    <div class="f-rule"></div>
+    <div class="label signal" style="margin-bottom:18px">Finding 01</div>
+    <h2 class="headline" style="max-width:19ch">They used the things we normally <em style="color:var(--signal)">trust</em> against us.</h2>
+    <p class="sub">A valid Microsoft signature, a familiar coworker, a trusted developer account, a routine software update, and a compliance check all became disguises. The activity looked ordinary, so employees and security tools did not treat it as an attack.</p>
+  </div>
+</section>
+
+<section class="slide appendix" data-title="Finding 2">
+  <div class="spine">
+    <div class="f-rule"></div>
+    <div class="label signal" style="margin-bottom:18px">Finding 02</div>
+    <h2 class="headline" style="max-width:21ch">Our alarms worked. Our <em>response</em> didn&rsquo;t keep up.</h2>
+    <p class="sub">A blocked login, a quarantined script, an antivirus warning: all fired correctly. Each time, the attacker simply retried from a new address or renamed a file, and kept going.</p>
+  </div>
+</section>
+
+<section class="slide appendix" data-title="Finding 3">
+  <div class="spine">
+    <div class="f-rule"></div>
+    <div class="label signal" style="margin-bottom:18px">Finding 03</div>
+    <h2 class="headline" style="max-width:21ch">They built <em>more than one</em> way back in, on purpose.</h2>
+    <p class="sub">A rogue admin account, a trust link to an outside tenant, a highly-privileged sync role, remote-control software on many machines. Removing any one does not lock them out.</p>
+  </div>
+</section>
+
+<section class="slide appendix" data-title="Finding 4">
+  <div class="spine">
+    <div class="f-rule ok"></div>
+    <div class="label ok" style="margin-bottom:18px">A Bright Spot</div>
+    <h2 class="headline" style="max-width:23ch">One employee&rsquo;s vigilance <em style="color:var(--ok)">stopped</em> the supply-chain change.</h2>
+    <p class="sub">Bill Dewalt caught a disguised commit in his own project eight days after it landed and reverted it before deployment. This was a successful human control, and it exposes the need for a formal review gate.</p>
+  </div>
+</section>
+
+<section class="slide appendix" data-title="Finding 5">
+  <div class="spine">
+    <div class="f-rule"></div>
+    <div class="label signal" style="margin-bottom:18px">Open Question</div>
+    <h2 class="headline" style="max-width:23ch">The safety question is open, and it must stay separate from attribution.</h2>
+    <p class="sub">The plant-floor intrusion and Matt Wift&rsquo;s death fall in the same window, but the causal link is unresolved. Treat this as a potential safety incident, preserve the chain of custody, and let the evidence determine the conclusion.</p>
+  </div>
+</section>
+
+<!-- THREAT ACTORS -->
+<section class="slide appendix" data-title="Threat Actors">
+  <div class="spine top">
+    <div class="label">Who Is Likely Behind This</div>
+    <h2 class="headline" style="font-size:clamp(24px,3.2vw,38px)">Four working hypotheses. Attribution remains open.</h2>
+    <p class="sub" style="margin-bottom:30px">These are behavior-based assessments, confidence-tagged and not proof of responsibility or coordination.</p>
+    <div class="cols four">
+      <div class="col" style="--tone:var(--b)"><span class="glyph">FB</span><h4>Fluffy Bunny</h4><p>Infrastructure disruption. Best fits the plant-floor and OT harm.</p><span class="conf">Moderate</span></div>
+      <div class="col" style="--tone:var(--a2)"><span class="glyph">FM</span><h4>Funny Monkey</h4><p>Social engineering. Best fits the pickleball and Teams lures.</p><span class="conf">Moderate</span></div>
+      <div class="col" style="--tone:var(--c)"><span class="glyph">VS</span><h4>Viper Syndicate</h4><p>Intelligence gathering. Mass email theft and supply-chain foothold.</p><span class="conf">Low to Mod</span></div>
+      <div class="col" style="--tone:var(--a1)"><span class="glyph">VD</span><h4>Void Dog</h4><p>Opportunistic web exploitation. Alias &ldquo;Yocoteduende.&rdquo;</p><span class="conf">Low</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ASK -->
+<section class="slide appendix" data-title="The Ask">
+  <div class="spine top ask-spine">
+    <div class="label">What We&rsquo;re Asking</div>
+    <h2 class="headline" style="font-size:clamp(26px,3.6vw,44px)">Approve immediate containment and close the trust gaps.</h2>
+    <div class="cols three" style="margin-top:40px">
+      <div class="col" style="--tone:var(--signal)"><div class="ct">Authorize now</div><p>One coordinated containment across cloud, corporate, and plant systems. Reimage affected hosts, revoke persistence, rotate credentials, and monitor for return.</p></div>
+      <div class="col" style="--tone:var(--warn)"><div class="ct">Protect now</div><p>Run the safety and forensic investigations in parallel. Preserve evidence, maintain chain of custody, and coordinate with law enforcement.</p></div>
+      <div class="col" style="--tone:var(--ok)"><div class="ct">Fund next</div><p>Replace phone-code authentication, enforce privileged-access review, add software review gates, and segment office from plant systems.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- THANK YOU -->
+<section class="slide appendix" data-title="Thank You">
+  <div class="spine center">
+    <div class="divider-part">Thank You</div>
+    <h2 class="divider-title" style="font-size:clamp(28px,4.6vw,58px)">Questions?</h2>
+    <p class="sub" style="margin-top:22px">Team Vortex</p>
+    <!-- <div class="credit">Scan the previous slide&rsquo;s code any time for the full written report.</div> -->
+  </div>
+</section>
+
+</main>
+
+<button class="navbtn prev" id="btnPrev" aria-label="Previous slide" type="button">
+  <svg width="16" height="16" viewBox="0 0 18 18"><path d="M11 3L5 9l6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+</button>
+<button class="navbtn next" id="btnNext" aria-label="Next slide" type="button">
+  <svg width="16" height="16" viewBox="0 0 18 18"><path d="M7 3l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+</button>
+<button class="navbtn full" id="btnFull" type="button">
+  <svg width="12" height="12" viewBox="0 0 13 13" aria-hidden="true"><path d="M1 4V1h3M12 4V1H9M1 9v3h3M12 9v3H9" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>
+  Fullscreen
+</button>
+<div class="dots" id="dots" aria-hidden="true"></div>
+<div class="sr-only" aria-live="polite" id="liveRegion"></div>
+
+<script>
+(function(){
+
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide:not(.appendix)'));
+  var total = slides.length;
+  document.getElementById('totNum').textContent = String(total).padStart(2,'0');
+  var dotsWrap = document.getElementById('dots');
+  slides.forEach(function(_,i){
+    var d = document.createElement('div'); d.className='dot'; d.dataset.i=i; dotsWrap.appendChild(d);
+  });
+  var dots = Array.prototype.slice.call(dotsWrap.children);
+
+  var idx = 0;
+  function clamp(n){ return Math.max(0, Math.min(total-1, n)); }
+
+  function render(){
+    slides.forEach(function(s,i){ s.classList.toggle('active', i===idx); });
+    dots.forEach(function(d,i){ d.classList.toggle('on', i===idx); });
+    document.getElementById('curNum').textContent = String(idx+1).padStart(2,'0');
+    document.getElementById('progressBar').style.width = ((idx+1)/total*100).toFixed(2)+'%';
+    document.getElementById('liveRegion').textContent = 'Slide ' + (idx+1) + ' of ' + total + ': ' + (slides[idx].dataset.title||'');
+    if(history.replaceState){ history.replaceState(null,'','#'+(idx+1)); }
+  }
+
+  function go(n){ idx = clamp(n); render(); }
+  function next(){ go(idx+1); }
+  function prev(){ go(idx-1); }
+
+  document.getElementById('btnNext').addEventListener('click', next);
+  document.getElementById('btnPrev').addEventListener('click', prev);
+  dotsWrap.addEventListener('click', function(e){
+    var t = e.target.closest('.dot'); if(t) go(parseInt(t.dataset.i,10));
+  });
+
+  var lz = document.createElement('div'); lz.className='navzone left'; lz.setAttribute('aria-hidden','true');
+  var rz = document.createElement('div'); rz.className='navzone right'; rz.setAttribute('aria-hidden','true');
+  document.body.appendChild(lz); document.body.appendChild(rz);
+  lz.addEventListener('click', prev); rz.addEventListener('click', next);
+
+  document.addEventListener('keydown', function(e){
+    if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'){ e.preventDefault(); next(); }
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'){ e.preventDefault(); prev(); }
+    else if(e.key==='Home'){ go(0); }
+    else if(e.key==='End'){ go(total-1); }
+  });
+
+  var touchX=null;
+  document.addEventListener('touchstart', function(e){ touchX = e.changedTouches[0].clientX; }, {passive:true});
+  document.addEventListener('touchend', function(e){
+    if(touchX===null) return;
+    var dx = e.changedTouches[0].clientX - touchX;
+    if(Math.abs(dx) > 50){ dx<0 ? next() : prev(); }
+    touchX = null;
+  }, {passive:true});
+
+  document.getElementById('btnFull').addEventListener('click', function(){
+    if(!document.fullscreenElement){ document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); }
+    else { document.exitFullscreen && document.exitFullscreen(); }
+  });
+
+  var hashN = parseInt((location.hash||'').replace('#',''),10);
+  if(!isNaN(hashN) && hashN>=1 && hashN<=total){ idx = hashN-1; }
+  render();
+
+})();
+</script>
